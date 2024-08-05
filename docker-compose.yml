@@ -1,0 +1,50 @@
+services:
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/var/www/html
+    ports:
+      - "9000:9000"
+    container_name: php
+
+  nginx:
+    image: nginx:alpine
+    volumes:
+      - .:/var/www/html
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./snippets/fastcgi-php.conf:/etc/nginx/snippets/fastcgi-php.conf
+    ports:
+      - "80:80"
+    container_name: nginx
+    depends_on:
+      - php
+
+  mysql:
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: php-app
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    container_name: mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: user
+      PMA_PASSWORD: password
+    ports:
+      - "8080:80"
+    depends_on:
+      - mysql
+    container_name: phpmyadmin
+
+volumes:
+  mysql_data:
